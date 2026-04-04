@@ -4,7 +4,7 @@ import { io, type Socket } from 'socket.io-client';
 /** Must match `TOKEN_ACCESS` in `api.ts` (localStorage key). */
 const ACCESS_TOKEN_KEY = 'ig_access_token';
 
-const WS_BASE = (import.meta.env.VITE_WS_URL ?? 'http://localhost:3001').replace(/\/$/, '');
+const WS_BASE = (import.meta.env.VITE_WS_URL ?? (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001')).replace(/\/$/, '');
 
 let socket: Socket | null = null;
 

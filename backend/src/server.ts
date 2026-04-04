@@ -1,4 +1,5 @@
 import { createServer } from 'http';
+import path from 'path';
 import cors from 'cors';
 import express, { type ErrorRequestHandler, type Request, type Response } from 'express';
 import helmet from 'helmet';
@@ -59,7 +60,24 @@ app.use('/api/decoys', decoysRoutes);
 app.use('/api/events', eventsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
-app.use((_req: Request, res: Response) => {
+// ── Frontend static serving (production) ───────────────────────────────────
+const FRONTEND_DIST = path.resolve(__dirname, '../../dist');
+if (env.NODE_ENV === 'production') {
+  app.use(express.static(FRONTEND_DIST));
+}
+
+// ── Catch-all: API 404 or SPA fallback ─────────────────────────────────────
+app.use((req: Request, res: Response) => {
+  // API routes always get a JSON 404
+  if (req.path.startsWith('/api')) {
+    res.status(404).json({ success: false, error: 'Not found' });
+    return;
+  }
+  // Everything else falls back to the SPA index.html in production
+  if (env.NODE_ENV === 'production') {
+    res.sendFile(path.join(FRONTEND_DIST, 'index.html'));
+    return;
+  }
   res.status(404).json({ success: false, error: 'Not found' });
 });
 

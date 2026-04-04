@@ -12,7 +12,7 @@ import type {
   Department,
   ActionType,
 } from './mock-data';
-const BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001/api').replace(/\/$/, '');
+const BASE = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '');
 
 export const TOKEN_ACCESS = 'ig_access_token';
 export const TOKEN_REFRESH = 'ig_refresh_token';
