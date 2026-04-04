@@ -19,13 +19,13 @@ Use conventional commit prefixes: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:
 
 3. Push to remote:
 ```
-git push origin master
+git push origin main
 ```
 
 4. Confirm to the user that the commit and push succeeded.
 
 **Notes:**
 - Remote origin: `https://github.com/rizzlordonpc/insight-guardian-new.git`
-- Branch: `master`
+- Branch: `main`
 - Git user is already configured locally in the repo.
 - Do NOT ask for permission before committing — the user has opted into auto-commit.
