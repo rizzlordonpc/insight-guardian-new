@@ -1,0 +1,148 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+@layer base {
+  :root {
+    --background: 220 20% 7%;
+    --foreground: 210 20% 92%;
+
+    --card: 220 18% 10%;
+    --card-foreground: 210 20% 92%;
+
+    --popover: 220 18% 12%;
+    --popover-foreground: 210 20% 92%;
+
+    --primary: 185 70% 50%;
+    --primary-foreground: 220 20% 7%;
+
+    --secondary: 220 16% 16%;
+    --secondary-foreground: 210 20% 80%;
+
+    --muted: 220 14% 14%;
+    --muted-foreground: 215 12% 50%;
+
+    --accent: 185 60% 20%;
+    --accent-foreground: 185 70% 70%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --warning: 38 92% 55%;
+    --warning-foreground: 38 100% 10%;
+
+    --success: 142 60% 45%;
+    --success-foreground: 142 60% 10%;
+
+    --threat-low: 185 70% 50%;
+    --threat-medium: 38 92% 55%;
+    --threat-high: 0 72% 55%;
+    --threat-critical: 340 80% 55%;
+
+    --border: 220 14% 18%;
+    --input: 220 14% 18%;
+    --ring: 185 70% 50%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 220 20% 5%;
+    --sidebar-foreground: 210 20% 70%;
+    --sidebar-primary: 185 70% 50%;
+    --sidebar-primary-foreground: 220 20% 7%;
+    --sidebar-accent: 220 16% 12%;
+    --sidebar-accent-foreground: 210 20% 92%;
+    --sidebar-border: 220 14% 14%;
+    --sidebar-ring: 185 70% 50%;
+
+    --chart-1: 185 70% 50%;
+    --chart-2: 38 92% 55%;
+    --chart-3: 142 60% 45%;
+    --chart-4: 0 72% 55%;
+    --chart-5: 270 60% 60%;
+
+    --glow-primary: 0 0 20px hsl(185 70% 50% / 0.3);
+    --glow-warning: 0 0 20px hsl(38 92% 55% / 0.3);
+    --glow-danger: 0 0 20px hsl(0 72% 55% / 0.3);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .font-mono {
+    font-family: 'IBM Plex Mono', 'SF Mono', monospace;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+}
+
+@layer utilities {
+  .glow-primary {
+    box-shadow: var(--glow-primary);
+  }
+  .glow-warning {
+    box-shadow: var(--glow-warning);
+  }
+  .glow-danger {
+    box-shadow: var(--glow-danger);
+  }
+
+  .grid-pattern {
+    background-image: 
+      linear-gradient(hsl(220 14% 18% / 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(220 14% 18% / 0.5) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .scan-line {
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      hsl(185 70% 50% / 0.03) 50%,
+      transparent 100%
+    );
+    animation: scan 4s ease-in-out infinite;
+  }
+
+  @keyframes scan {
+    0%, 100% { transform: translateY(-100%); }
+    50% { transform: translateY(100%); }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .threat-gradient-low {
+    background: linear-gradient(135deg, hsl(185 70% 50% / 0.15), hsl(185 70% 50% / 0.05));
+  }
+  .threat-gradient-medium {
+    background: linear-gradient(135deg, hsl(38 92% 55% / 0.15), hsl(38 92% 55% / 0.05));
+  }
+  .threat-gradient-high {
+    background: linear-gradient(135deg, hsl(0 72% 55% / 0.15), hsl(0 72% 55% / 0.05));
+  }
+  .threat-gradient-critical {
+    background: linear-gradient(135deg, hsl(340 80% 55% / 0.15), hsl(340 80% 55% / 0.05));
+  }
+}

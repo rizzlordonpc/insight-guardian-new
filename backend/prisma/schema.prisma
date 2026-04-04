@@ -1,0 +1,262 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Org / simulation enums (mirrors frontend mock-data) ─────────────────────
+
+enum OrgRole {
+  Admin
+  Manager
+  Employee
+  Intern
+}
+
+enum Department {
+  Engineering
+  Finance
+  HR
+  Marketing
+  Legal
+  Operations
+}
+
+enum RiskTrend {
+  increasing
+  decreasing
+  stable
+}
+
+enum MonitoredUserStatus {
+  active
+  inactive
+  flagged
+  frozen
+}
+
+enum DecoyAssetType {
+  file
+  database
+  api
+}
+
+enum Severity {
+  low
+  medium
+  high
+  critical
+}
+
+enum ActivityActionType {
+  file_read
+  file_write
+  file_download
+  db_query
+  api_call
+  login
+  logout
+  decoy_access
+}
+
+enum AlertStatus {
+  open
+  investigating
+  resolved
+  dismissed
+}
+
+enum AccessEventKind {
+  normal
+  decoy
+  denied
+}
+
+enum AccessEventSource {
+  SYSTEM
+  ADMIN
+}
+
+enum AdminActionType {
+  USER_RESTRICTED
+  USER_RESTORED
+}
+
+enum AdminActionSource {
+  ADMIN
+}
+
+enum ContainmentDuration {
+  h1
+  h24
+  manual
+}
+
+enum DecoyLifecycleStatus {
+  active
+  inactive
+}
+
+// SOC console operator (JWT / session) — distinct from monitored org Users.
+
+enum AppRole {
+  Administrator
+  Analyst
+}
+
+// ─── Models ─────────────────────────────────────────────────────────────────
+
+model AuthAccount {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  appRole      AppRole
+  createdAt    DateTime  @default(now())
+  lastLogin    DateTime?
+  refreshToken String?
+
+  httpAuditLogs HttpAuditLog[]
+}
+
+/// HTTP API request audit trail (state-changing routes). Separate from simulation ActivityLog.
+model HttpAuditLog {
+  id             String       @id @default(uuid())
+  createdAt      DateTime     @default(now())
+  method         String
+  path           String
+  statusCode     Int
+  latencyMs      Int?
+  ip             String?
+  authAccountId  String?
+  operatorEmail  String?
+  authAccount    AuthAccount? @relation(fields: [authAccountId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([authAccountId])
+}
+
+/// Monitored organization employee (simulation), not an AuthAccount.
+model User {
+  id                        String                @id @default(uuid())
+  name                      String
+  email                     String                @unique
+  role                      OrgRole
+  department                Department
+  avatar                    String
+  workingHoursStart         Int
+  workingHoursEnd           Int
+  riskScore                 Int
+  riskTrend                 RiskTrend
+  lastActivity              DateTime              @default(now())
+  status                    MonitoredUserStatus
+  behaviorAvgLoginHour      Int
+  behaviorAvgSessionMinutes Int
+  behaviorAvgDailyAccesses  Int
+  behaviorCommonFileTypes   String[]
+  behaviorStabilityScore    Float
+
+  activityLogs    ActivityLog[]
+  alerts          Alert[]
+  accessEvents    AccessEvent[]
+  adminActionLogs AdminActionLog[] @relation("AdminActionTarget")
+  containment     ContainmentState?
+
+  @@index([status])
+}
+
+model DecoyAsset {
+  id              String               @id @default(uuid())
+  name            String
+  type            DecoyAssetType
+  format          String
+  sensitivityTag Severity
+  createdAt       DateTime             @default(now())
+  accessCount     Int                  @default(0)
+  lastAccessed    DateTime?
+  beacon          String               @unique
+  status          DecoyLifecycleStatus @default(active)
+
+  @@index([sensitivityTag])
+}
+
+model ActivityLog {
+  id                String             @id @default(uuid())
+  timestamp         DateTime           @default(now())
+  userId            String
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userName          String
+  actionType        ActivityActionType
+  resource          String
+  sensitivityLevel  Severity
+  ip                String
+  isDecoy           Boolean            @default(false)
+  riskContribution  Int
+
+  @@index([userId])
+  @@index([timestamp])
+}
+
+model Alert {
+  id          String      @id @default(uuid())
+  timestamp   DateTime    @default(now())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userName    String
+  severity    Severity
+  riskScore   Int
+  title       String
+  description String
+  reasons     Json
+  status      AlertStatus
+
+  @@index([userId])
+  @@index([timestamp])
+  @@index([status])
+}
+
+model AccessEvent {
+  id             String             @id @default(uuid())
+  userId         String
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  employeeName   String
+  resource       String
+  timestamp      DateTime           @default(now())
+  accessType     AccessEventKind
+  riskFlag       Boolean
+  actionType     String
+  ip             String
+  triggeredBy    AccessEventSource
+
+  @@index([userId])
+  @@index([timestamp])
+}
+
+model AdminActionLog {
+  id             String            @id @default(uuid())
+  timestamp      DateTime          @default(now())
+  actionType     AdminActionType
+  targetUserId   String
+  targetUser     User              @relation("AdminActionTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+  targetUserName String
+  triggeredBy    AdminActionSource
+  operatorName   String
+  rationale      String?
+
+  @@index([targetUserId])
+  @@index([timestamp])
+}
+
+model ContainmentState {
+  id         String               @id @default(uuid())
+  userId     String               @unique
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileAccess Boolean
+  dbAccess   Boolean
+  apiAccess  Boolean
+  duration   ContainmentDuration
+  appliedAt  DateTime             @default(now())
+}
