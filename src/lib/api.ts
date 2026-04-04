@@ -268,13 +268,22 @@ export function apiAccessEventToStoreEvent(e: ApiAccessEventRow) {
 // ─── api object ──────────────────────────────────────────────────────────────
 
 async function postPublic<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  const data = (await res.json()) as T;
-  return data;
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    return { success: false, error: 'Network error — is the backend running?' } as T;
+  }
+  try {
+    const data = (await res.json()) as T;
+    return data;
+  } catch {
+    return { success: false, error: `Server error (${res.status})` } as T;
+  }
 }
 
 export const api = {
