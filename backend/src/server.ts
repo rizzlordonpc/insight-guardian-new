@@ -31,9 +31,27 @@ app.use(helmet());
 
 // ── Body parsing & CORS ────────────────────────────────────────────────────
 app.use(express.json());
+
+// Smart CORS: same-origin requests (no Origin header) always pass.
+// In production every *.up.railway.app subdomain is allowed so Railway's
+// two auto-generated domains never conflict.
 app.use(
   cors({
-    origin: env.FRONTEND_URL,
+    origin: (origin, callback) => {
+      // Same-origin / server-to-server (no Origin header) — always allow
+      if (!origin) return callback(null, true);
+      // Wildcard shortcut (dev / open deployments)
+      if (env.FRONTEND_URL === '*') return callback(null, true);
+      // Exact match of configured FRONTEND_URL
+      if (origin === env.FRONTEND_URL) return callback(null, true);
+      // All Railway preview / production subdomains
+      if (env.NODE_ENV === 'production' && origin.endsWith('.up.railway.app'))
+        return callback(null, true);
+      // Localhost for local dev
+      if (env.NODE_ENV !== 'production' && /^https?:\/\/localhost(:\d+)?$/.test(origin))
+        return callback(null, true);
+      return callback(new Error(`CORS blocked: ${origin}`));
+    },
     credentials: true,
   }),
 );
