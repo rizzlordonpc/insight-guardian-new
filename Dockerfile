@@ -1,0 +1,39 @@
+# ── Stage 1: Build ────────────────────────────────────────────────────────────
+FROM node:18 AS builder
+
+WORKDIR /app
+
+# Copy everything
+COPY . .
+
+# ── Frontend ──────────────────────────────────────────────────────────────────
+RUN npm ci
+RUN npm run build
+# Frontend build output → /app/dist
+
+# ── Backend ───────────────────────────────────────────────────────────────────
+WORKDIR /app/backend
+RUN npm ci
+RUN npm run build
+# Backend build output → /app/backend/dist
+RUN npx prisma generate
+
+# ── Stage 2: Production image ─────────────────────────────────────────────────
+FROM node:18-slim AS runner
+
+WORKDIR /app/backend
+
+# Copy compiled backend + prisma client
+COPY --from=builder /app/backend/dist ./dist
+COPY --from=builder /app/backend/node_modules ./node_modules
+COPY --from=builder /app/backend/prisma ./prisma
+COPY --from=builder /app/backend/package.json ./package.json
+
+# Copy compiled frontend (served as static files by Express)
+COPY --from=builder /app/dist /app/dist
+
+ENV NODE_ENV=production
+EXPOSE 3001
+
+# Migrate DB then start server
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
