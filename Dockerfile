@@ -16,7 +16,7 @@ WORKDIR /app/backend
 RUN npm ci
 RUN npm run build
 # Backend build output → /app/backend/dist
-RUN npx prisma generate
+RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder" npx prisma generate
 
 # ── Stage 2: Production image ─────────────────────────────────────────────────
 FROM node:18-slim AS runner
