@@ -21,6 +21,8 @@ RUN npx prisma generate
 # ── Stage 2: Production image ─────────────────────────────────────────────────
 FROM node:18-slim AS runner
 
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app/backend
 
 # Copy compiled backend + prisma client
