@@ -143,9 +143,18 @@ async function main() {
     ],
   });
 
+  const usedEmails = new Set<string>();
   const usersData = Array.from({ length: 20 }, (_, i) => {
-    const first = pick(firstNames);
-    const last = pick(lastNames);
+    let first = pick(firstNames);
+    let last = pick(lastNames);
+    let email = `${first.toLowerCase()}.${last.toLowerCase()}@corp.internal`;
+    while (usedEmails.has(email)) {
+      first = pick(firstNames);
+      last = pick(lastNames);
+      email = `${first.toLowerCase()}.${last.toLowerCase()}@corp.internal`;
+    }
+    usedEmails.add(email);
+
     const role = i === 0 ? OrgRole.Admin : pick(orgRoles);
     const riskScore = role === OrgRole.Intern ? rand(20, 85) : rand(5, 70);
     const fileTypes = ['.pdf', '.xlsx', '.docx', '.csv'].slice(0, rand(2, 4));
@@ -157,7 +166,7 @@ async function main() {
     return {
       id: randomUUID(),
       name: `${first} ${last}`,
-      email: `${first.toLowerCase()}.${last.toLowerCase()}@corp.internal`,
+      email,
       role,
       department: pick(departments),
       avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${first}+${last}&backgroundColor=0d1117&textColor=22d3ee`,

@@ -84,7 +84,18 @@ const ips = ['192.168.1.', '10.0.0.', '172.16.0.', '203.0.113.', '198.51.100.'];
 
 function rand(min: number, max: number) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 function pick<T>(arr: T[]): T { return arr[rand(0, arr.length - 1)]; }
-function uuid() { return crypto.randomUUID(); }
+function uuid() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // Fallback for non-secure contexts (e.g. accessing via a LAN IP over http://),
+  // where crypto.randomUUID is unavailable.
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
 
 function hoursAgo(h: number): string {
   return new Date(Date.now() - h * 3600000).toISOString();
