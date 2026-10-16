@@ -11,6 +11,18 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: false,
     },
+    // Forward API + Socket.io traffic to the local backend (backend/.env PORT)
+    proxy: {
+      "/api": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+      },
+      "/socket.io": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+        ws: true,
+      },
+    },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
